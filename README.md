@@ -40,7 +40,7 @@ Input files ere the [2012 retrosheet.org event files](http://www.retrosheet.org/
 
 Because Hadoop's FileInputFormat reads each line as its own records, carriage-returns were replaced with tabs using the following command:
 
-      perl -e 's/[\n\r]+/\|/g' -pi lib/2012eve/\*
+      perl -e 's/[\n\r]+/\|/g' -pi lib/2012eve/*
 
 This enables half-inning aggregate data to be efficiently collected through iteration.
 
