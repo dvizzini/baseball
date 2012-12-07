@@ -1,17 +1,24 @@
 #!/usr/bin/python -O
 
 f=open('output.txt','r')
-g=open('sortedOutput.txt','w')
+g1=open('outputPitches.txt','w')
+g2=open('outputRbis.txt','w')
+g3=open('outputBases.txt','w')
 
 reduced = []
 while True:
-  x=f.readline()
-  if x is None: break
-  x = x.split()
-  x = (x[0], x[1])
-  append(reduced, x.split())
+  x=f.readline().split()
+  if (len(x) is 0): break
+  x = (x[0], x[1].split(","))
+  reduced.append(x)
 
-sorted(reduced, key=lambda line: line[1])
+reducedPitches = sorted(reduced, key=lambda line: line[1][0], reverse=True)
+reducedRbis = sorted(reduced, key=lambda line: line[1][1], reverse=True)
+reducedBases = sorted(reduced, key=lambda line: line[1][2], reverse=True)
 
-for item in reduced:
-  g.write("%s\n" % item)
+for item in reducedPitches:
+    g1.write("%s: %s \n" % (item[0], item[1]))
+for item in reducedRbis:
+    g2.write("%s: %s \n" % (item[0], item[1]))
+for item in reducedBases:
+    g3.write("%s: %s \n" % (item[0], item[1]))

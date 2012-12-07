@@ -29,6 +29,8 @@ echo "...removing files from hadoop fs.."
 hadoop fs -rm /user/cloudera/baseball/output/*
 hadoop fs -rmdir /user/cloudera/baseball/output/
 
-hadoop jar baseball.jar com.danielvizzini.baseball.Baseball /user/cloudera/baseball/input/* /user/cloudera/baseball/output > $output_file
+hadoop jar baseball.jar com.danielvizzini.baseball.Baseball /user/cloudera/baseball/input/* /user/cloudera/baseball/output
+
+hadoop fs -cat /user/cloudera/baseball/output/* > $output_file
 
 exit 0

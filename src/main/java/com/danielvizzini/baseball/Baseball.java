@@ -1,10 +1,9 @@
 package com.danielvizzini.baseball;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,7 +60,7 @@ public class Baseball extends Configured implements Tool {
 			
 			//ready input
 			String file = value.toString();
-			BufferedReader reader = new BufferedReader(new StringReader(file));			
+			StringTokenizer tokenizer = new StringTokenizer(file, "|");
 			
 			//instantiate to non-existent for comparison
 			int[] halfInning = {0,0};
@@ -70,8 +69,8 @@ public class Baseball extends Configured implements Tool {
 			while (true) {
 								
 				//iterate
-				String line = reader.readLine();
-				String[] csv = {};
+				String line = (tokenizer.hasMoreTokens()) ? tokenizer.nextToken() : null;
+				String[] csv = {}; 	
 				
 				//even if line is null, last half-inning will still need to be collected
 				if (line != null) {
@@ -88,7 +87,6 @@ public class Baseball extends Configured implements Tool {
 					if(csv.length != 7) continue;					
 				}
 				
-
 				//mark end of half-inning (short-circuiting prevents null pointer)
 				if (line == null || Integer.parseInt(csv[1]) != halfInning[0] || Integer.parseInt(csv[2]) != halfInning[1]) {
 					
@@ -183,28 +181,27 @@ public class Baseball extends Configured implements Tool {
 			
 			//calculate statistics
 			while (values.hasNext()) {
-				pitchesNumerator += ((IntWritable) values.next().get()[0]).get();
-				pitchesDenominator += ((IntWritable) values.next().get()[1]).get();
-				rbisNumerator += ((IntWritable) values.next().get()[2]).get();
-				rbisDenominator += ((IntWritable) values.next().get()[3]).get();
-				basesNumerator += ((IntWritable) values.next().get()[4]).get();
-				basesDenominator += ((IntWritable) values.next().get()[5]).get();
+				ArrayWritable value = values.next();
+				pitchesNumerator += ((IntWritable) value.get()[0]).get();
+				pitchesDenominator += ((IntWritable) value.get()[1]).get();
+				rbisNumerator += ((IntWritable) value.get()[2]).get();
+				rbisDenominator += ((IntWritable) value.get()[3]).get();
+				basesNumerator += ((IntWritable) value.get()[4]).get();
+				basesDenominator += ((IntWritable) value.get()[5]).get();
 				numAtBats++;
 			}
 			
-			boolean eligiable = true;
-			
 			//only include batter's with three valid statistics
-			if (pitchesDenominator == 0 || rbisDenominator == 0 || basesDenominator == 0) eligiable = false;
+			if (pitchesDenominator == 0 || rbisDenominator == 0 || basesDenominator == 0) return;
 				
 			//only include batters with MIN_NUM_ATBATS
-			if (numAtBats < MIN_NUM_ATBATS) eligiable = false;
+			if (numAtBats < MIN_NUM_ATBATS) return;
 			
 			//record aggregate statistics
 			FloatWritable[] reducedValues = new FloatWritable[3];
-			reducedValues[0] = (eligiable) ? new FloatWritable(((float) pitchesNumerator) / ((float) pitchesDenominator)) : new FloatWritable(0.f);
-			reducedValues[1] = (eligiable) ? new FloatWritable(((float) rbisNumerator) / ((float) rbisDenominator)) : new FloatWritable(0.f);
-			reducedValues[2] = (eligiable) ? new FloatWritable(((float) basesNumerator) / ((float) basesDenominator)) : new FloatWritable(0.f);
+			reducedValues[0] = new FloatWritable(Float.valueOf(pitchesNumerator) / Float.valueOf(pitchesDenominator));
+			reducedValues[1] = new FloatWritable(Float.valueOf(rbisNumerator) / Float.valueOf(rbisDenominator));
+			reducedValues[2] = new FloatWritable(Float.valueOf(basesNumerator) / Float.valueOf(basesDenominator));
 			
 			output.collect(key, new FloatArrayWritable(reducedValues));
 			
@@ -213,10 +210,10 @@ public class Baseball extends Configured implements Tool {
 
 	public int run(String[] args) throws Exception {
 		JobConf conf = new JobConf(getConf(), Baseball.class);
-		conf.setJobName("wordcount");
+		conf.setJobName("baseball");
 		
 		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(ArrayWritable.class);
+		conf.setOutputValueClass(IntArrayWritable.class);
 		
 		conf.setMapperClass(Map.class);
 		conf.setReducerClass(Reduce.class);
@@ -280,6 +277,15 @@ public class Baseball extends Configured implements Tool {
 		default:
 			return 0;
 		}
+	}
+	
+	public static void replaceAll(StringBuilder builder, String from, String to) {
+	    int index = builder.indexOf(from);
+	    while (index != -1) {
+	        builder.replace(index, index + from.length(), to);
+	        index += to.length(); // Move to the end of the replacement
+	        index = builder.indexOf(from, index);
+	    }
 	}
 
 
