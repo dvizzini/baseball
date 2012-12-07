@@ -2,6 +2,7 @@ package com.danielvizzini.baseball;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -94,11 +95,15 @@ public class Baseball extends Configured implements Tool {
 					while (!batterQueue.isEmpty()) {
 						
 						//instantiate and set key
+						String batterString = batterQueue.pop();
 						Text batter = new Text();
-						batter.set(batterQueue.pop());					
+						batter.set(batterString);					
+						
+						//Keep track of batters to avoid double counting in case order bats around
+						HashSet<String> playersInHalfInning = new HashSet<String>();
 
 						/**
-						 * To be passed to reducer
+						 * Value to be passed to reducer
 						 * index 0: number of pitches
 						 * index 1: pitches in inning
 						 * index 2: num batter's rbis
@@ -110,11 +115,13 @@ public class Baseball extends Configured implements Tool {
 						
 						//set values
 						mappedValues[0] = new IntWritable(pitchesQueue.pop());
-						mappedValues[1] = new IntWritable(pitchesInInning);
+						mappedValues[1] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : pitchesInInning);
 						mappedValues[2] = new IntWritable(rbisQueue.pop());
-						mappedValues[3] = new IntWritable(rbisInInning);
+						mappedValues[3] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : rbisInInning);
 						mappedValues[4] = new IntWritable(basesQueue.pop());
-						mappedValues[5] = new IntWritable(basesInInning);
+						mappedValues[5] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : basesInInning);
+						
+						playersInHalfInning.add(batterString);
 						
 						//store for Hadoop
 						output.collect(batter, new IntArrayWritable(mappedValues));

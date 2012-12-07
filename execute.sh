@@ -33,4 +33,9 @@ hadoop jar baseball.jar com.danielvizzini.baseball.Baseball /user/cloudera/baseb
 
 hadoop fs -cat /user/cloudera/baseball/output/* > $output_file
 
+if [[ $output_file == 'output.txt' ]]
+then
+        ./sort.py
+fi
+
 exit 0

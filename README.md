@@ -36,7 +36,7 @@ This system was deployed on [Cloudera's Sample Hadoop CDH4 VM](http://blog.cloud
 
 Input Files
 -----------
-Input files ere the [2012 retrosheet.org event files](http://www.retrosheet.org/game.html). An explanation of this file is [here](http://www.retrosheet.org/GameFiles.pdf).
+Input files ere the [2012 retrosheet.org event files](http://www.retrosheet.org/game.html). An explanation of this file is [here](http://www.retrosheet.org/eventfile.htm).
 
 Because Hadoop's FileInputFormat reads each line as its own records, carriage-returns were replaced with tabs using the following command:
 
