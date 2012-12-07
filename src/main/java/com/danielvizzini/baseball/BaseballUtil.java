@@ -4,6 +4,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BaseballUtil {
+	
+	//hide default constructor
+	private BaseballUtil() {}
 
 	/**
 	 * @param pitch field of play record
