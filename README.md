@@ -21,7 +21,7 @@ Initial setup can be accomplished by running the following script:
 
 A fresh jar can be created and executed with the following script
 
-      ./execute.sh [output\_file]
+      ./execute.sh [output_file]
 
 
 where [output_file] defaults to __output.txt__. The following Python script will sort the contents of output.txt:
