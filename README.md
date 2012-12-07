@@ -17,16 +17,16 @@ It is recommended that you run this algorithm on a fresh instance of [Cloudera's
 
 Initial setup can be accomplished by running the following script:
 
-  ./setup.sh
+      ./setup.sh
 
 A fresh jar can be created and executed with the following script
 
-  ./execute.sh [output\_file]
+      ./execute.sh [output\_file]
 
 
 where [output\_file] defaults to __output.txt__. The following Python script will sort the contents of output.txt:
 
-  ./sort.py
+      ./sort.py
 
 For your convenience, an alphabetical file, a file sorted by the pitches statistics, a file sorted by the RBI statistic, and a file sorted by the bases statistic are included as __output.txt__, __outputPitches.txt__, __outputRbis.txt__, and __outputBases.txt__, respectively.
 
@@ -40,7 +40,7 @@ Input files ere the [2012 retrosheet.org event files](http://www.retrosheet.org/
 
 Because Hadoop's FileInputFormat reads each line as its own records, carriage-returns were replaced with tabs using the following command:
 
-  perl -e 's/[\n\r]+/\|/g' -pi lib/2012eve/\*
+      perl -e 's/[\n\r]+/\|/g' -pi lib/2012eve/\*
 
 This enables half-inning aggregate data to be efficiently collected through iteration.
 
