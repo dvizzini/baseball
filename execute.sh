@@ -21,13 +21,12 @@ jar="baseball.jar"
 
 echo ".........creating new jar........."
 rm -f "$jar"
-rm -f target/classes/com/danielvizzini/hadoop/*.class
-javac -cp /usr/lib/hadoop/client-0.20/\* -d "$target" src/main/java/com/danielvizzini/hadoop/Baseball.java 
+rm -f target/classes/com/danielvizzini/baseball/*.class
+javac -cp /usr/lib/hadoop/client-0.20/\* -d "$target" src/main/java/com/danielvizzini/baseball/* 
 jar -cvf "$jar" -C "$target" .
 
 echo "...removing files from hadoop fs.."
-hadoop fs -rm /user/cloudera/baseball/output/*
-hadoop fs -rmdir /user/cloudera/baseball/output/
+hadoop fs -rmr /user/cloudera/baseball/output/
 
 hadoop jar baseball.jar com.danielvizzini.baseball.Baseball /user/cloudera/baseball/input/* /user/cloudera/baseball/output
 

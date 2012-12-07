@@ -3,7 +3,7 @@ package com.danielvizzini.baseball;
 import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.FloatWritable;
 
-public class FloatArrayWritable extends ArrayWritable
+class FloatArrayWritable extends ArrayWritable
 {
     public FloatArrayWritable() {
         super(FloatWritable.class);

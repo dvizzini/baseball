@@ -5,8 +5,6 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -151,9 +149,9 @@ public class Baseball extends Configured implements Tool {
 				batterQueue.add(csv[3]);
 				
 				//calculate statistics
-				int pitches = Baseball.countPitches(csv[5]);
-				int rbis = Baseball.countRbis(csv[6]);
-				int bases = Baseball.countBases(csv[6]);
+				int pitches = BaseballUtil.countPitches(csv[5]);
+				int rbis = BaseballUtil.countRbis(csv[6]);
+				int bases = BaseballUtil.countBases(csv[6]);
 				
 				//update totals
 				pitchesInInning += pitches;
@@ -243,57 +241,4 @@ public class Baseball extends Configured implements Tool {
 	    
 	}
 	
-	/**
-	 * @param pitch field of play record
-	 * @return all actions that constitute a pitch, as defined by http://www.retrosheet.org/eventfile.htm
-	 */
-	static int countPitches(String str) {
-		int pitches = 0;
-		Matcher matcher = Pattern.compile("[BCFHKLMOPQRSTUXY]").matcher(str);
-		while (matcher.find()) pitches++;
-		return pitches;
-	}
-	
-	/**
-	 * @param event field of play record
-	 * @return all runs scored during event
-	 */
-	static int countRbis(String str) {
-		int rbis = 0;
-		Matcher matcher = Pattern.compile("-H|HR").matcher(str);
-		while (matcher.find()) rbis++; 
-		return rbis;
-	}
-	
-	static int countBases(String str) {
-		//hit by pitch
-		if (str.startsWith("HP")) return 1;
-		
-		switch (str.charAt(0)) {
-		//single, intentional walk, and walk
-		case 'S':
-		case 'I':
-		case 'W':
-			return 1;
-		case 'D':
-			return 2;
-		case 'T':
-			return 3;
-		case 'H':
-			return 4;
-		default:
-			return 0;
-		}
-	}
-	
-	public static void replaceAll(StringBuilder builder, String from, String to) {
-	    int index = builder.indexOf(from);
-	    while (index != -1) {
-	        builder.replace(index, index + from.length(), to);
-	        index += to.length(); // Move to the end of the replacement
-	        index = builder.indexOf(from, index);
-	    }
-	}
-
-
 }
