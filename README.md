@@ -24,7 +24,7 @@ A fresh jar can be created and executed with the following script
       ./execute.sh [output\_file]
 
 
-where [output\_file] defaults to __output.txt__. The following Python script will sort the contents of output.txt:
+where [output_file] defaults to __output.txt__. The following Python script will sort the contents of output.txt:
 
       ./sort.py
 
