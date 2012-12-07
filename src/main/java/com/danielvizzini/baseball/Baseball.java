@@ -33,7 +33,7 @@ import org.apache.hadoop.util.ToolRunner;
 public class Baseball extends Configured implements Tool {
 
 	public static final int MIN_NUM_ATBATS = 100;
-	public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, ArrayWritable> {
+	public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, IntArrayWritable> {
 		
 		//legacy code from tutorial
 		static enum Counters { INPUT_LINES }
@@ -57,7 +57,7 @@ public class Baseball extends Configured implements Tool {
 		int rbisInInning = 0;
 		int basesInInning = 0;
 
-		public void map(LongWritable key, Text value, OutputCollector<Text, ArrayWritable> output, Reporter reporter) throws IOException {
+		public void map(LongWritable key, Text value, OutputCollector<Text, IntArrayWritable> output, Reporter reporter) throws IOException {
 			
 			//ready input
 			String file = value.toString();
@@ -119,9 +119,7 @@ public class Baseball extends Configured implements Tool {
 						mappedValues[5] = new IntWritable(basesInInning);
 						
 						//store for Hadoop
-						ArrayWritable intArrayWritable = new ArrayWritable(IntWritable.class);
-						intArrayWritable.set(mappedValues);
-						output.collect(batter, intArrayWritable);
+						output.collect(batter, new IntArrayWritable(mappedValues));
 						reporter.incrCounter(Counters.INPUT_LINES, 1L);
 						
 					}
@@ -169,9 +167,9 @@ public class Baseball extends Configured implements Tool {
 		}
 	}
 
-	public static class Reduce extends MapReduceBase implements Reducer<Text, ArrayWritable, Text, ArrayWritable> {
+	public static class Reduce extends MapReduceBase implements Reducer<Text, IntArrayWritable, Text, FloatArrayWritable> {
 
-		public void reduce(Text key, Iterator<ArrayWritable> values, OutputCollector<Text, ArrayWritable> output, Reporter reporter) throws IOException {
+		public void reduce(Text key, Iterator<IntArrayWritable> values, OutputCollector<Text, FloatArrayWritable> output, Reporter reporter) throws IOException {
 			
 			int numAtBats = 0;
 
@@ -208,9 +206,7 @@ public class Baseball extends Configured implements Tool {
 			reducedValues[1] = (eligiable) ? new FloatWritable(((float) rbisNumerator) / ((float) rbisDenominator)) : new FloatWritable(0.f);
 			reducedValues[2] = (eligiable) ? new FloatWritable(((float) basesNumerator) / ((float) basesDenominator)) : new FloatWritable(0.f);
 			
-			ArrayWritable floatArrayWritable = new ArrayWritable(FloatWritable.class);
-			floatArrayWritable.set(reducedValues);
-			output.collect(key, floatArrayWritable);
+			output.collect(key, new FloatArrayWritable(reducedValues));
 			
 		}				
 	}
@@ -220,7 +216,7 @@ public class Baseball extends Configured implements Tool {
 		conf.setJobName("wordcount");
 		
 		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(IntWritable.class);
+		conf.setOutputValueClass(ArrayWritable.class);
 		
 		conf.setMapperClass(Map.class);
 		conf.setReducerClass(Reduce.class);

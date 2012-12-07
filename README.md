@@ -30,6 +30,10 @@ Input Files
 -----------
 Input files ere the [2012 retrosheet.org event files](http://www.retrosheet.org/game.html). An explanation of this file is [here](http://www.retrosheet.org/GameFiles.pdf).
 
+Testing
+-------
+Easily testable static methods were tested with JUnit, but not thorough unit testing of the Hadoop proceses has been done.
+
 Limiations
 ----------
 One obvious limitation is that in an inning with multiple pitchers different the quality normalization is compromized. Another is that the statistics normalize for a batter's fellow teammates in addition to his opposing pitcher. A good batter on a bad-hitting team may have better statistics than a better batter on a good-hitting team.
