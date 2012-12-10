@@ -7,7 +7,7 @@ public class BaseballUtil {
 	
 	//hide default constructor
 	private BaseballUtil() {}
-
+	
 	/**
 	 * @param pitch field of play record
 	 * @return all actions that constitute a pitch, as defined by http://www.retrosheet.org/eventfile.htm

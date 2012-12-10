@@ -1,14 +1,14 @@
 package com.danielvizzini.baseball;
 
 import org.apache.hadoop.io.ArrayWritable;
-import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Writable;
 
-class IntArrayWritable extends ArrayWritable {
-    public IntArrayWritable() {
-        super(IntWritable.class);
+class SerializableArrayWritable extends ArrayWritable {
+    protected SerializableArrayWritable(Class<? extends Writable> klass) {
+        super(klass);
     }
-    public IntArrayWritable(IntWritable[] values) {
-        super(IntWritable.class, values);
+    protected SerializableArrayWritable(Class<? extends Writable> klass, Writable[] values) {
+        super(klass, values);
     }
 
     @Override
@@ -23,5 +23,6 @@ class IntArrayWritable extends ArrayWritable {
         }
         
         return sb.toString();
-    }
+    }    
+
 }
