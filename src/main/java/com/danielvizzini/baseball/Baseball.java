@@ -77,13 +77,11 @@ public class Baseball extends Configured implements Tool {
 					csv = line.split(",");
 
 					//ignore badly formatted
-					if(csv.length == 0) continue;					
+					if(csv.length != 7) continue;					
 
 					//ignore non-play records
 					if(!csv[0].equals("play")) continue;
-					
-					//ignore badly formatted
-					if(csv.length != 7) continue;					
+
 				}
 				
 				//mark end of half-inning (short-circuiting prevents null pointer)
