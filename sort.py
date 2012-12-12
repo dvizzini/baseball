@@ -12,9 +12,9 @@ while True:
   x = (x[0], x[1].split(","))
   reduced.append(x)
 
-reducedPitches = sorted(reduced, key=lambda line: line[1][0], reverse=True)
-reducedRbis = sorted(reduced, key=lambda line: line[1][1], reverse=True)
-reducedBases = sorted(reduced, key=lambda line: line[1][2], reverse=True)
+reducedPitches = sorted(reduced, key=lambda line: line[1][1], reverse=True)
+reducedRbis = sorted(reduced, key=lambda line: line[1][2], reverse=True)
+reducedBases = sorted(reduced, key=lambda line: line[1][3], reverse=True)
 
 for item in reducedPitches:
     g1.write("%s: %s \n" % (item[0], item[1]))

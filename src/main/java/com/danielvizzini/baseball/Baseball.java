@@ -9,8 +9,6 @@ import java.util.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.ArrayWritable;
-import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -31,7 +29,10 @@ import org.apache.hadoop.util.ToolRunner;
 public class Baseball extends Configured implements Tool {
 
 	public static final int MIN_NUM_ATBATS = 100;
-	public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, IntArrayWritable> {
+	private static final IntWritable zero = new IntWritable(0);
+	private static final IntWritable one = new IntWritable(1);
+		
+	public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, TotalsArrayWritable> {
 		
 		//legacy code from tutorial
 		static enum Counters { INPUT_LINES }
@@ -55,7 +56,7 @@ public class Baseball extends Configured implements Tool {
 		int rbisInInning = 0;
 		int basesInInning = 0;
 
-		public void map(LongWritable key, Text value, OutputCollector<Text, IntArrayWritable> output, Reporter reporter) throws IOException {
+		public void map(LongWritable key, Text value, OutputCollector<Text, TotalsArrayWritable> output, Reporter reporter) throws IOException {
 			
 			//ready input
 			String file = value.toString();
@@ -81,12 +82,13 @@ public class Baseball extends Configured implements Tool {
 
 					//ignore non-play records
 					if(!csv[0].equals("play")) continue;
-
 				}
 				
 				//mark end of half-inning (short-circuiting prevents null pointer)
 				if (line == null || Integer.parseInt(csv[1]) != halfInning[0] || Integer.parseInt(csv[2]) != halfInning[1]) {
 					
+					String lastBatter = "";
+
 					//populate last half-inning
 					while (!batterQueue.isEmpty()) {
 						
@@ -100,27 +102,30 @@ public class Baseball extends Configured implements Tool {
 
 						/**
 						 * Value to be passed to reducer
-						 * index 0: number of pitches
-						 * index 1: pitches in inning
-						 * index 2: num batter's rbis
-						 * index 3: rbis in inning
-						 * index 4: num batter's bases
-						 * index 5: bases in inning
+						 * index 0: number of atbats
+						 * index 1: number of pitches
+						 * index 2: pitches in inning
+						 * index 3: num batter's rbis
+						 * index 4: rbis in inning
+						 * index 5: num batter's bases
+						 * index 6: bases in inning
 						 */
-						IntWritable[] mappedValues = new IntWritable[6];
+						IntWritable[] mappedValues = new IntWritable[7];
 						
 						//set values
-						mappedValues[0] = new IntWritable(pitchesQueue.pop());
-						mappedValues[1] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : pitchesInInning);
-						mappedValues[2] = new IntWritable(rbisQueue.pop());
-						mappedValues[3] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : rbisInInning);
-						mappedValues[4] = new IntWritable(basesQueue.pop());
-						mappedValues[5] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : basesInInning);
+						mappedValues[0] = (batterString.equals(lastBatter)) ? Baseball.zero : Baseball.one;
+						mappedValues[1] = new IntWritable(pitchesQueue.pop());
+						mappedValues[2] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : pitchesInInning);
+						mappedValues[3] = new IntWritable(rbisQueue.pop());
+						mappedValues[4] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : rbisInInning);
+						mappedValues[5] = new IntWritable(basesQueue.pop());
+						mappedValues[6] = new IntWritable(playersInHalfInning.contains(batterString) ? 0 : basesInInning);
 						
 						playersInHalfInning.add(batterString);
+						lastBatter = batterString;
 						
 						//store for Hadoop
-						output.collect(batter, new IntArrayWritable(mappedValues));
+						output.collect(batter, new TotalsArrayWritable(mappedValues));
 						reporter.incrCounter(Counters.INPUT_LINES, 1L);
 						
 					}
@@ -168,45 +173,33 @@ public class Baseball extends Configured implements Tool {
 		}
 	}
 
-	public static class Reduce extends MapReduceBase implements Reducer<Text, IntArrayWritable, Text, FloatArrayWritable> {
+	public static class Combine extends MapReduceBase implements Reducer<Text, TotalsArrayWritable, Text, TotalsArrayWritable> {
 
-		public void reduce(Text key, Iterator<IntArrayWritable> values, OutputCollector<Text, FloatArrayWritable> output, Reporter reporter) throws IOException {
+		public void reduce(Text key, Iterator<TotalsArrayWritable> values, OutputCollector<Text, TotalsArrayWritable> output, Reporter reporter) throws IOException {
 			
-			int numAtBats = 0;
+			TotalsArrayWritable totals = new TotalsArrayWritable();		
+			totals.combine(values);
+						
+			output.collect(key, totals);
+			
+		}				
+	}
 
-			//calculate batter's totals
-			int pitchesNumerator = 0;
-			int pitchesDenominator = 0;
-			int rbisNumerator = 0;
-			int rbisDenominator = 0;
-			int basesNumerator = 0;
-			int basesDenominator = 0;
+	public static class Reduce extends MapReduceBase implements Reducer<Text, TotalsArrayWritable, Text, RatioArrayWritable> {
+
+		public void reduce(Text key, Iterator<TotalsArrayWritable> values, OutputCollector<Text, RatioArrayWritable> output, Reporter reporter) throws IOException {
 			
-			//calculate statistics
-			while (values.hasNext()) {
-				ArrayWritable value = values.next();
-				pitchesNumerator += ((IntWritable) value.get()[0]).get();
-				pitchesDenominator += ((IntWritable) value.get()[1]).get();
-				rbisNumerator += ((IntWritable) value.get()[2]).get();
-				rbisDenominator += ((IntWritable) value.get()[3]).get();
-				basesNumerator += ((IntWritable) value.get()[4]).get();
-				basesDenominator += ((IntWritable) value.get()[5]).get();
-				numAtBats++;
-			}
-			
-			//only include batter's with three valid statistics
-			if (pitchesDenominator == 0 || rbisDenominator == 0 || basesDenominator == 0) return;
+			TotalsArrayWritable totals = new TotalsArrayWritable();		
+			totals.combine(values);
+
+			//only include batter's with all-positive denominators
+			if (totals.denominatorIsZero()) return;				
 				
 			//only include batters with MIN_NUM_ATBATS
-			if (numAtBats < MIN_NUM_ATBATS) return;
+			if (totals.doesNotHaveMin(MIN_NUM_ATBATS)) return;
 			
 			//record aggregate statistics
-			FloatWritable[] reducedValues = new FloatWritable[3];
-			reducedValues[0] = new FloatWritable(Float.valueOf(pitchesNumerator) / Float.valueOf(pitchesDenominator));
-			reducedValues[1] = new FloatWritable(Float.valueOf(rbisNumerator) / Float.valueOf(rbisDenominator));
-			reducedValues[2] = new FloatWritable(Float.valueOf(basesNumerator) / Float.valueOf(basesDenominator));
-			
-			output.collect(key, new FloatArrayWritable(reducedValues));
+			output.collect(key, totals.getRatios());
 			
 		}				
 	}
@@ -216,9 +209,10 @@ public class Baseball extends Configured implements Tool {
 		conf.setJobName("baseball");
 		
 		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(IntArrayWritable.class);
+		conf.setOutputValueClass(TotalsArrayWritable.class);
 		
 		conf.setMapperClass(Map.class);
+		conf.setCombinerClass(Combine.class);
 		conf.setReducerClass(Reduce.class);
 		
 		conf.setInputFormat(TextInputFormat.class);
@@ -236,7 +230,7 @@ public class Baseball extends Configured implements Tool {
 		
 		int res = ToolRunner.run(new Configuration(), new Baseball(), args);
 	    System.exit(res);
-	    
+	
 	}
 	
 }

@@ -4,7 +4,7 @@
 
 if [ "$1" = "--help" ]
 then
-        echo "refresh.sh [output_file], where output_file defaults to output.txt"
+        echo "./execute.sh [output_file], where output_file defaults to output.txt"
         exit 0
 fi
 
