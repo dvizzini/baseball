@@ -9,7 +9,7 @@ This project contains the com.danielvizzini.baseball package, which uses Hadoop 
 
 The idea being that the quality of pitches faced by all batter's is roughly equivalent throughout a half-inning, so that good performance in the face of weak pitching should count less than good performance in the face of strong pitching. Limitations to this approach are discussed below.
 
-Note that only batter's with at least 100 atbats are tabulated.
+Note that only batters with at least 100 atbats are tabulated.
 
 Running the algorithm
 ---------------------
